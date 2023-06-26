@@ -16,6 +16,7 @@ class PortBlockerPage extends StatefulWidget {
 class _PortBlockerPageState extends State<PortBlockerPage> {
   final inputPortController = TextEditingController();
   List<int> blockedPorts = [];
+  final formKey = GlobalKey<FormState>();
 
   addBlockedPorts(int port) {
     setState(() {
@@ -45,9 +46,12 @@ class _PortBlockerPageState extends State<PortBlockerPage> {
               itemBuilder: (context, index) {
                 return ListTile(
                   title: Text(PortBlockerPage.items[index]),
-                  onTap: () {
+                  onTap: () async {
                     if (index == 0) {
-                      _dialogBuilder(context);
+                      final portInput = await _dialogBuilder(context);
+                      if (portInput != null && !portInput.isEmpty) {
+                        addBlockedPorts(int.parse(portInput));
+                      }
                     }
                   },
                 );
@@ -87,19 +91,34 @@ class _PortBlockerPageState extends State<PortBlockerPage> {
     );
   }
 
-  Future<void> _dialogBuilder(BuildContext context) {
-    return showDialog<void>(
+  Future<String?> _dialogBuilder<String>(BuildContext context) {
+    return showDialog<String>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Close Port'),
-          content: TextFormField(
-            controller: inputPortController,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
+          content: Form(
+            key: formKey,
+            child: TextFormField(
+              controller: inputPortController,
+              autofocus: true,
+              decoration: InputDecoration(
                 border: OutlineInputBorder(),
                 hintText: "Select a port",
-                labelText: "Port"),
+                labelText: "Port",
+              ),
+              validator: (value) {
+                if (value!.isEmpty) {
+                  return "Port cannot be empty";
+                } else if (int.tryParse(value) == null) {
+                  return "Port must be a number";
+                } else if (int.parse(value) < 1024) {
+                  return "Port must be greater than 1023";
+                } else {
+                  return null;
+                }
+              },
+            ),
           ),
           actions: <Widget>[
             TextButton(
@@ -108,7 +127,8 @@ class _PortBlockerPageState extends State<PortBlockerPage> {
               ),
               child: const Text('Cancel'),
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop('');
+                inputPortController.clear();
               },
             ),
             TextButton(
@@ -117,9 +137,10 @@ class _PortBlockerPageState extends State<PortBlockerPage> {
               ),
               child: const Text('Close'),
               onPressed: () {
-                addBlockedPorts(int.parse(inputPortController.text));
-                inputPortController.clear();
-                Navigator.of(context).pop();
+                if (formKey.currentState!.validate()) {
+                  Navigator.of(context).pop(inputPortController.text);
+                  inputPortController.clear();
+                }
               },
             ),
           ],
