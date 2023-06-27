@@ -1,6 +1,5 @@
+import 'package:aweSomeTools/util/socket_service.dart';
 import 'package:flutter/material.dart';
-import 'package:shelf/shelf.dart';
-import 'package:shelf/shelf_io.dart' as shelf_io;
 
 class PortBlockerPage extends StatefulWidget {
   static const List<String> items = [
@@ -15,6 +14,7 @@ class PortBlockerPage extends StatefulWidget {
 
 class _PortBlockerPageState extends State<PortBlockerPage> {
   final inputPortController = TextEditingController();
+  final socketService = SocketService();
   List<int> blockedPorts = [];
   final formKey = GlobalKey<FormState>();
 
@@ -22,6 +22,7 @@ class _PortBlockerPageState extends State<PortBlockerPage> {
     setState(() {
       if (!blockedPorts.contains(port)) {
         blockedPorts.add(port);
+        socketService.startBlockingPort(port);
       }
     });
   }
@@ -29,6 +30,9 @@ class _PortBlockerPageState extends State<PortBlockerPage> {
   @override
   void dispose() {
     inputPortController.dispose();
+    for (int blockedPort in blockedPorts) {
+      socketService.stopBlockingPort(blockedPort);
+    }
     super.dispose();
   }
 
@@ -49,9 +53,7 @@ class _PortBlockerPageState extends State<PortBlockerPage> {
                   onTap: () async {
                     if (index == 0) {
                       final portInput = await _dialogBuilder(context);
-                      if (portInput != null && !portInput.isEmpty) {
-                        addBlockedPorts(int.parse(portInput));
-                      }
+                      addBlockedPorts(int.parse(portInput));
                     }
                   },
                 );
@@ -75,6 +77,8 @@ class _PortBlockerPageState extends State<PortBlockerPage> {
                           icon: Icon(Icons.delete),
                           onPressed: () {
                             setState(() {
+                              socketService
+                                  .stopBlockingPort(blockedPorts[index]);
                               blockedPorts.removeAt(index);
                             });
                           },
