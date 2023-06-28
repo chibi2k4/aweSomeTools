@@ -1,3 +1,4 @@
+import 'package:aweSomeTools/snippet_editor_page.dart';
 import 'package:flutter/material.dart';
 import 'port_blocker_page.dart';
 import 'home_page.dart';
@@ -13,7 +14,7 @@ class UtilApp extends StatelessWidget {
     return MaterialApp(
       title: 'aweSomeTools',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.blueGrey,
       ),
       home: MainPage(),
     );
@@ -27,31 +28,56 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   int _currentIndex = 0;
-  List<Widget> _pages = [HomePage(), SettingsPage(), PortBlockerPage()];
+  List<Widget> _pages = [
+    HomePage(),
+    SettingsPage(),
+    PortBlockerPage(),
+    SnippetEditorPage(),
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
+      body: Column(
+        children: [
+          Row(
+            children: [
+              TextButton(
+                child: Text('Home'),
+                onPressed: () {
+                  setState(() {
+                    _currentIndex = 0;
+                  });
+                },
+              ),
+              TextButton(
+                child: Text('Settings'),
+                onPressed: () {
+                  setState(() {
+                    _currentIndex = 1;
+                  });
+                },
+              ),
+              TextButton(
+                child: Text('Port Blocker'),
+                onPressed: () {
+                  setState(() {
+                    _currentIndex = 2;
+                  });
+                },
+              ),
+              TextButton(
+                child: Text('Snippet Editor'),
+                onPressed: () {
+                  setState(() {
+                    _currentIndex = 3;
+                  });
+                },
+              ),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.block),
-            label: 'Port Blocker',
+          Expanded(
+            child: _pages[_currentIndex],
           ),
         ],
       ),
